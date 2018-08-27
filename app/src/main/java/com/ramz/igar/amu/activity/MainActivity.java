@@ -12,11 +12,10 @@ import android.support.v4.app.ActivityCompat;
 import android.support.v4.content.ContextCompat;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
-import android.support.v7.widget.LinearLayoutManager;
+import android.support.v7.widget.GridLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.util.Log;
 import android.view.View;
-import android.widget.GridView;
 import android.widget.ImageButton;
 import android.widget.TextView;
 
@@ -24,6 +23,7 @@ import com.ramz.igar.amu.R;
 import com.ramz.igar.amu.adapter.AlbumAdapter;
 import com.ramz.igar.amu.model.Album;
 import com.ramz.igar.amu.model.GlobalState;
+import com.ramz.igar.amu.model.ItemOffDecoration;
 import com.ramz.igar.amu.model.Player;
 import com.ramz.igar.amu.model.Song;
 
@@ -50,10 +50,11 @@ public class MainActivity extends AppCompatActivity {
         status = findViewById(R.id.status);
         recyclerView = findViewById(R.id.album_recycler_view);
 
-        RecyclerView.LayoutManager layoutManager = new LinearLayoutManager(getApplicationContext());
-        recyclerView.setLayoutManager(layoutManager);
+        recyclerView.setLayoutManager(new GridLayoutManager(this, 2));
         albumAdapter = new AlbumAdapter(MainActivity.this, albums);
         recyclerView.setAdapter(albumAdapter);
+        ItemOffDecoration itemDecoration = new ItemOffDecoration(2, getResources().getDimensionPixelSize(R.dimen.item_offset), true, 0);
+        recyclerView.addItemDecoration(itemDecoration);
 
         if (ContextCompat.checkSelfPermission(getApplicationContext(), Manifest.permission.READ_EXTERNAL_STORAGE) != PackageManager.PERMISSION_GRANTED) {
             ActivityCompat.requestPermissions(this, new String[]{Manifest.permission.READ_EXTERNAL_STORAGE}, 1);
@@ -104,21 +105,21 @@ public class MainActivity extends AppCompatActivity {
                 songs.add(new Song(thisId, thisTitle, thisArtist, thisAlbum, thisDuration, thisPath, albumArt));
                 cursor.close();
             } while (musicCursor.moveToNext());
-
+            HashMap<String, Album> tempAlbums = new HashMap<>();
             for (Song song : songs) {
-                String albumTitle = song.getAlbum();
+                String key = song.getAlbum();
                 String albumCover = song.getAlbumArt();
                 String artist = song.getArtist();
-                for(Album album: albums){
-                    if (!album.getAlbumTitle().equals(albumTitle)) {
-                        Album temp = new Album(albumTitle, albumCover, artist);
-                        temp.addSong(song);
-                        albums.add(temp);
-                    } else {
-                        album.addSong(song);
-                    }
+                if (!tempAlbums.containsKey(key)) {
+                    tempAlbums.put(key, new Album(key, albumCover, artist));
+                    Album album = tempAlbums.get(key);
+                    album.addSong(song);
+                } else {
+                    Album album = tempAlbums.get(key);
+                    album.addSong(song);
                 }
             }
+            albums.addAll(tempAlbums.values());
             albumAdapter.update();
             musicCursor.close();
         }
