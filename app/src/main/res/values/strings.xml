@@ -1,0 +1,11 @@
+<resources>
+    <string name="app_name">Amu</string>
+    <string name="waiting">WAITING FOR PERMISSION</string>
+    <string name="granted">PERMISSION GRANTED</string>
+    <string name="already_granted">PERMISSION ALREADY GRANTED</string>
+    <string name="denied">DENIED</string>
+    <string name="previous_button">Previous Button</string>
+    <string name="next_button">Next Button</string>
+    <string name="play_button">Play Button</string>
+    <string name="stop_button">Stop Button</string>
+</resources>
