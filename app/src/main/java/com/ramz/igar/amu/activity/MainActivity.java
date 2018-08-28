@@ -3,6 +3,7 @@ package com.ramz.igar.amu.activity;
 import android.Manifest;
 import android.animation.AnimatorSet;
 import android.animation.ObjectAnimator;
+import android.animation.ValueAnimator;
 import android.content.ContentResolver;
 import android.content.Context;
 import android.content.pm.PackageManager;
@@ -17,9 +18,9 @@ import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.support.v7.widget.GridLayoutManager;
 import android.support.v7.widget.RecyclerView;
-import android.util.Log;
 import android.view.View;
 import android.widget.ImageButton;
+import android.widget.LinearLayout;
 import android.widget.TextView;
 
 import com.ramz.igar.amu.R;
@@ -39,15 +40,14 @@ import io.reactivex.subjects.BehaviorSubject;
 
 public class MainActivity extends AppCompatActivity implements View.OnClickListener {
 
-    private ArrayList<Song> playlist = GlobalState.getInstance().getPlaylist();
+    BottomSheetBehavior bottomSheetBehavior;
+    //    private ArrayList<Song> playlist = GlobalState.getInstance().getPlaylist();
     private List<Album> albums = GlobalState.getInstance().getAlbums();
-
     private TextView status, songTitle, songTitleExpand;
     private RecyclerView recyclerView;
     private Player player;
     private ImageButton playButton;
     private AlbumAdapter albumAdapter;
-    BottomSheetBehavior bottomSheetBehavior;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -101,8 +101,9 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         bottomSheetBehavior.setHideable(true);
         bottomSheetBehavior.setState(player.getPlayer().isPlaying() ? BottomSheetBehavior.STATE_COLLAPSED : BottomSheetBehavior.STATE_HIDDEN);
 
-        final View bottomView = findViewById(R.id.bottom_sheet_sec);
+//        final View bottomView = findViewById(R.id.bottom_sheet_sec);
         final View bottomViewChild = findViewById(R.id.bottom_sheet_sec_child);
+        final View playerView = findViewById(R.id.player_view);
         bottomSheetBehavior.setBottomSheetCallback(new BottomSheetBehavior.BottomSheetCallback() {
             @Override
             public void onStateChanged(@NonNull View bottomSheet, int newState) {
@@ -111,8 +112,9 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                 ObjectAnimator nextAnimation = ObjectAnimator.ofFloat(nextButton, "alpha", alpha);
                 ObjectAnimator prevAnimation = ObjectAnimator.ofFloat(prevButton, "alpha", alpha);
                 ObjectAnimator bottomChild = ObjectAnimator.ofFloat(bottomViewChild, "alpha", newState == BottomSheetBehavior.STATE_EXPANDED ? 1f : 0f);
+                ObjectAnimator playerAnimation = ObjectAnimator.ofFloat(playerView, "alpha", alpha);
                 AnimatorSet anim = new AnimatorSet();
-                anim.playTogether(playAnimation, nextAnimation, prevAnimation, bottomChild);
+                anim.playTogether(playAnimation, nextAnimation, prevAnimation, bottomChild, playerAnimation);
                 anim.setDuration(500);
                 if (newState == BottomSheetBehavior.STATE_HIDDEN) {
                     player.stop();
@@ -130,10 +132,6 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 
             @Override
             public void onSlide(@NonNull View bottomSheet, float slideOffset) {
-                int colorFrom = ContextCompat.getColor(getApplicationContext(), R.color.colorAccent);
-                int colorTo = ContextCompat.getColor(getApplicationContext(), R.color.colorBackgroundDark);
-                Log.d("Color", "" + colorTo);
-                bottomView.setBackgroundColor(interpolateColor(slideOffset, colorFrom, colorTo));
             }
         });
 
@@ -144,7 +142,28 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
             public void onNextValue(Boolean value) {
                 playButton.setImageResource(value ? R.drawable.ic_pause : R.drawable.ic_play);
                 playButtonEx.setImageResource(value ? R.drawable.ic_pause_expand : R.drawable.ic_play_expand);
-                if (value && bottomSheetBehavior.getState() == BottomSheetBehavior.STATE_HIDDEN) bottomSheetBehavior.setState(BottomSheetBehavior.STATE_COLLAPSED);
+                if (value && bottomSheetBehavior.getState() == BottomSheetBehavior.STATE_HIDDEN)
+                    bottomSheetBehavior.setState(BottomSheetBehavior.STATE_COLLAPSED);
+                if(!value && player.getCurrentSong() == null) bottomSheetBehavior.setState(BottomSheetBehavior.STATE_HIDDEN);
+
+                final LinearLayout linearLayout = findViewById(R.id.main_activity_root);
+                ValueAnimator animation;
+
+                if (bottomSheetBehavior.getState() != BottomSheetBehavior.STATE_HIDDEN && value) {
+                    animation = ValueAnimator.ofInt(0, getResources().getDimensionPixelSize(R.dimen.bottom_sheet_top_height));
+                } else {
+                    animation = ValueAnimator.ofInt(getResources().getDimensionPixelSize(R.dimen.bottom_sheet_top_height), 0);
+                }
+
+                animation.setDuration(500);
+                animation.addUpdateListener(new ValueAnimator.AnimatorUpdateListener() {
+                    @Override
+                    public void onAnimationUpdate(ValueAnimator valueAnimator) {
+                        linearLayout.setPadding(0, 0, 0, Integer.parseInt(valueAnimator.getAnimatedValue().toString()));
+                    }
+                });
+                animation.start();
+
             }
         });
 
@@ -155,6 +174,8 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
             public void onNextValue(Song value) {
                 songTitle.setText(value.getTitle());
                 songTitleExpand.setText(value.getTitle());
+                bottomSheet.setBackground(player.getPlayerBackground(getApplicationContext()));
+
             }
         });
 
@@ -190,13 +211,14 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                         MediaStore.Audio.Albums._ID + "=?",
                         new String[]{String.valueOf(thisId)},
                         null);
+                if (cursor != null) {
+                    if (cursor.moveToFirst()) {
+                        albumArt = cursor.getString(cursor.getColumnIndex(MediaStore.Audio.Albums.ALBUM_ART));
+                    }
 
-                if (cursor.moveToFirst()) {
-                    albumArt = cursor.getString(cursor.getColumnIndex(MediaStore.Audio.Albums.ALBUM_ART));
+                    songs.add(new Song(thisId, thisTitle, thisArtist, thisAlbum, thisDuration, thisPath, albumArt));
+                    cursor.close();
                 }
-
-                songs.add(new Song(thisId, thisTitle, thisArtist, thisAlbum, thisDuration, thisPath, albumArt));
-                cursor.close();
             } while (musicCursor.moveToNext());
             HashMap<String, Album> tempAlbums = new HashMap<>();
             for (Song song : songs) {
@@ -235,6 +257,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
             }
         }
     }
+
     @Override
     public void onClick(View v) {
         switch (v.getId()) {
@@ -262,20 +285,5 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                 break;
             }
         }
-    }
-
-    private int interpolateColor(float fraction, int startValue, int endValue) {
-        int startA = (startValue >> 24) & 0xff;
-        int startR = (startValue >> 16) & 0xff;
-        int startG = (startValue >> 8) & 0xff;
-        int startB = startValue & 0xff;
-        int endA = (endValue >> 24) & 0xff;
-        int endR = (endValue >> 16) & 0xff;
-        int endG = (endValue >> 8) & 0xff;
-        int endB = endValue & 0xff;
-        return ((startA + (int) (fraction * (endA - startA))) << 24) |
-                ((startR + (int) (fraction * (endR - startR))) << 16) |
-                ((startG + (int) (fraction * (endG - startG))) << 8) |
-                ((startB + (int) (fraction * (endB - startB))));
     }
 }

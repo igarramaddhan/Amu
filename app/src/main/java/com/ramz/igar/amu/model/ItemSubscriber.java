@@ -1,7 +1,5 @@
 package com.ramz.igar.amu.model;
 
-import android.view.View;
-
 import io.reactivex.Observer;
 import io.reactivex.disposables.Disposable;
 import io.reactivex.subjects.BehaviorSubject;

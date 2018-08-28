@@ -2,12 +2,16 @@ package com.ramz.igar.amu.activity;
 
 import android.animation.AnimatorSet;
 import android.animation.ObjectAnimator;
+import android.animation.ValueAnimator;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
+import android.graphics.drawable.GradientDrawable;
 import android.support.annotation.NonNull;
 import android.support.design.widget.BottomSheetBehavior;
 import android.support.design.widget.CollapsingToolbarLayout;
+import android.support.design.widget.CoordinatorLayout;
 import android.support.v4.content.ContextCompat;
+import android.support.v4.widget.NestedScrollView;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.support.v7.graphics.Palette;
@@ -79,7 +83,7 @@ public class AlbumActivity extends AppCompatActivity implements View.OnClickList
 
         Bitmap coverBitmap = BitmapFactory.decodeFile(album.getAlbumCover());
         imageView.setImageBitmap(coverBitmap);
-        Palette palette = Palette.from(coverBitmap).generate();
+        final Palette palette = Palette.from(coverBitmap).generate();
         int color1 = palette.getDarkVibrantColor(ContextCompat.getColor(getApplicationContext(), R.color.colorBackgroundDark));
         int color2 = palette.getDarkMutedColor(ContextCompat.getColor(getApplicationContext(), R.color.colorPrimary));
         collapsingToolbarLayout.setStatusBarScrimColor(color2);
@@ -99,8 +103,10 @@ public class AlbumActivity extends AppCompatActivity implements View.OnClickList
         bottomSheetBehavior.setHideable(true);
         bottomSheetBehavior.setState(player.getPlayer().isPlaying() ? BottomSheetBehavior.STATE_COLLAPSED : BottomSheetBehavior.STATE_HIDDEN);
 
-        final View bottomView = findViewById(R.id.bottom_sheet_sec);
+//        final View bottomView = findViewById(R.id.bottom_sheet_sec);
         final View bottomViewChild = findViewById(R.id.bottom_sheet_sec_child);
+
+        final View playerView = findViewById(R.id.player_view);
         bottomSheetBehavior.setBottomSheetCallback(new BottomSheetBehavior.BottomSheetCallback() {
             @Override
             public void onStateChanged(@NonNull View bottomSheet, int newState) {
@@ -109,8 +115,9 @@ public class AlbumActivity extends AppCompatActivity implements View.OnClickList
                 ObjectAnimator nextAnimation = ObjectAnimator.ofFloat(nextButton, "alpha", alpha);
                 ObjectAnimator prevAnimation = ObjectAnimator.ofFloat(prevButton, "alpha", alpha);
                 ObjectAnimator bottomChild = ObjectAnimator.ofFloat(bottomViewChild, "alpha", newState == BottomSheetBehavior.STATE_EXPANDED ? 1f : 0f);
+                ObjectAnimator playerAnimation = ObjectAnimator.ofFloat(playerView, "alpha", alpha);
                 AnimatorSet anim = new AnimatorSet();
-                anim.playTogether(playAnimation, nextAnimation, prevAnimation, bottomChild);
+                anim.playTogether(playAnimation, nextAnimation, prevAnimation, bottomChild, playerAnimation);
                 anim.setDuration(500);
                 if (newState == BottomSheetBehavior.STATE_HIDDEN) {
                     player.stop();
@@ -128,10 +135,6 @@ public class AlbumActivity extends AppCompatActivity implements View.OnClickList
 
             @Override
             public void onSlide(@NonNull View bottomSheet, float slideOffset) {
-                int colorFrom = ContextCompat.getColor(getApplicationContext(), R.color.colorAccent);
-                int colorTo = ContextCompat.getColor(getApplicationContext(), R.color.colorBackgroundDark);
-                Log.d("Color", "" + colorTo);
-                bottomView.setBackgroundColor(interpolateColor(slideOffset, colorFrom, colorTo));
             }
         });
 
@@ -144,6 +147,25 @@ public class AlbumActivity extends AppCompatActivity implements View.OnClickList
                 playButtonEx.setImageResource(value ? R.drawable.ic_pause_expand : R.drawable.ic_play_expand);
                 if (value && bottomSheetBehavior.getState() == BottomSheetBehavior.STATE_HIDDEN)
                     bottomSheetBehavior.setState(BottomSheetBehavior.STATE_COLLAPSED);
+                if(!value && player.getCurrentSong() == null) bottomSheetBehavior.setState(BottomSheetBehavior.STATE_HIDDEN);
+
+                final CoordinatorLayout coordinatorLayout = findViewById(R.id.scroll_view);
+                ValueAnimator animation;
+
+                if (bottomSheetBehavior.getState() != BottomSheetBehavior.STATE_HIDDEN && value) {
+                    animation = ValueAnimator.ofInt(0, getResources().getDimensionPixelSize(R.dimen.bottom_sheet_top_height));
+                } else {
+                    animation = ValueAnimator.ofInt(getResources().getDimensionPixelSize(R.dimen.bottom_sheet_top_height), 0);
+                }
+
+                animation.setDuration(500);
+                animation.addUpdateListener(new ValueAnimator.AnimatorUpdateListener() {
+                    @Override
+                    public void onAnimationUpdate(ValueAnimator valueAnimator) {
+                        coordinatorLayout.setPadding(0, 0, 0, Integer.parseInt(valueAnimator.getAnimatedValue().toString()));
+                    }
+                });
+                animation.start();
             }
         });
 
@@ -154,6 +176,8 @@ public class AlbumActivity extends AppCompatActivity implements View.OnClickList
             public void onNextValue(Song value) {
                 songTitle.setText(value.getTitle());
                 songTitleExpand.setText(value.getTitle());
+                if (value != null && player.getPlayerBackground(getApplicationContext()) != null)
+                    bottomSheet.setBackground(player.getPlayerBackground(getApplicationContext()));
             }
         });
 
@@ -192,20 +216,5 @@ public class AlbumActivity extends AppCompatActivity implements View.OnClickList
                 break;
             }
         }
-    }
-
-    private int interpolateColor(float fraction, int startValue, int endValue) {
-        int startA = (startValue >> 24) & 0xff;
-        int startR = (startValue >> 16) & 0xff;
-        int startG = (startValue >> 8) & 0xff;
-        int startB = startValue & 0xff;
-        int endA = (endValue >> 24) & 0xff;
-        int endR = (endValue >> 16) & 0xff;
-        int endG = (endValue >> 8) & 0xff;
-        int endB = endValue & 0xff;
-        return ((startA + (int) (fraction * (endA - startA))) << 24) |
-                ((startR + (int) (fraction * (endR - startR))) << 16) |
-                ((startG + (int) (fraction * (endG - startG))) << 8) |
-                ((startB + (int) (fraction * (endB - startB))));
     }
 }

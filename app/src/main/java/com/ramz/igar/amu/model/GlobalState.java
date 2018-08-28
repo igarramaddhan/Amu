@@ -1,7 +1,6 @@
 package com.ramz.igar.amu.model;
 
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
 
 public class GlobalState {
@@ -31,7 +30,7 @@ public class GlobalState {
         this.playlist.addAll(songs);
     }
 
-    public void resetPlaylist(){
+    private void resetPlaylist(){
         this.playlist.clear();
     }
 
@@ -46,4 +45,6 @@ public class GlobalState {
     public List<Song> getAlbumSongs(int position){
         return albums.get(position).getSongs();
     }
+
+
 }
