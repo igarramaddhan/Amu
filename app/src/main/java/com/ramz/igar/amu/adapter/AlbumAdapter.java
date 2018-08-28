@@ -1,12 +1,14 @@
 package com.ramz.igar.amu.adapter;
 
+import android.app.Activity;
 import android.content.Context;
+import android.content.Intent;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.support.annotation.NonNull;
+import android.support.v4.app.ActivityOptionsCompat;
 import android.support.v7.widget.CardView;
 import android.support.v7.widget.RecyclerView;
-import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -14,6 +16,7 @@ import android.widget.ImageView;
 import android.widget.TextView;
 
 import com.ramz.igar.amu.R;
+import com.ramz.igar.amu.activity.AlbumActivity;
 import com.ramz.igar.amu.model.Album;
 
 import java.util.List;
@@ -31,21 +34,24 @@ public class AlbumAdapter extends RecyclerView.Adapter<AlbumAdapter.AlbumViewHol
     @NonNull
     @Override
     public AlbumViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
-        View view = LayoutInflater.from(context).inflate(R.layout.album_card, parent, false);
+        View view = LayoutInflater.from(parent.getContext()).inflate(R.layout.album_card, parent, false);
         return new AlbumViewHolder(view);
     }
 
     @Override
-    public void onBindViewHolder(@NonNull AlbumViewHolder holder, int position) {
+    public void onBindViewHolder(@NonNull final AlbumViewHolder holder, int position) {
+        final int pos = position;
         holder.cardView.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-
+                Intent intent = new Intent(context, AlbumActivity.class);
+                intent.putExtra("albumId", pos);
+                ActivityOptionsCompat options = ActivityOptionsCompat.makeSceneTransitionAnimation((Activity) context, holder.imageView, "albumArt");
+                context.startActivity(intent, options.toBundle());
             }
         });
 
         Album album = albums.get(position);
-        Log.d("SONG", album.getAlbumTitle());
         Bitmap coverBitmap = BitmapFactory.decodeFile(album.getAlbumCover());
         holder.imageView.setImageBitmap(coverBitmap);
         holder.titleTextView.setText(album.getAlbumTitle());

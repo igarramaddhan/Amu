@@ -14,7 +14,6 @@ import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.support.v7.widget.GridLayoutManager;
 import android.support.v7.widget.RecyclerView;
-import android.util.Log;
 import android.view.View;
 import android.widget.ImageButton;
 import android.widget.TextView;
@@ -31,7 +30,9 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 
-public class MainActivity extends AppCompatActivity {
+import io.reactivex.subjects.BehaviorSubject;
+
+public class MainActivity extends AppCompatActivity implements View.OnClickListener {
 
     private ArrayList<Song> playlist = GlobalState.getInstance().getPlaylist();
     private List<Album> albums = GlobalState.getInstance().getAlbums();
@@ -47,9 +48,14 @@ public class MainActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
+        player = GlobalState.getInstance().getPlayer();
+        BehaviorSubject<Boolean> isPlaying = player.getIsPlayingBehavior();
+        BehaviorSubject<Song> currentSong = player.getCurrentSongBehavior();
+
         status = findViewById(R.id.status);
         recyclerView = findViewById(R.id.album_recycler_view);
 
+        recyclerView.setHasFixedSize(true);
         recyclerView.setLayoutManager(new GridLayoutManager(this, 2));
         albumAdapter = new AlbumAdapter(MainActivity.this, albums);
         recyclerView.setAdapter(albumAdapter);
@@ -129,7 +135,6 @@ public class MainActivity extends AppCompatActivity {
     public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
         switch (requestCode) {
             case 1: {
-                Log.d("PERMISSION", "" + grantResults.length);
                 if (grantResults.length > 0 && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
                     status.setText(getResources().getString(R.string.granted));
                     if (GlobalState.getInstance().getAlbums().isEmpty())
@@ -139,6 +144,34 @@ public class MainActivity extends AppCompatActivity {
                 } else {
                     status.setText(getResources().getString(R.string.denied));
                 }
+                break;
+            }
+        }
+    }
+    @Override
+    public void onClick(View v) {
+        switch (v.getId()) {
+            case R.id.play_button:
+            case R.id.play_button_expand: {
+                if (player.isPlaying()) {
+                    player.pause();
+                } else if (!player.isPlaying()) {
+                    player.play();
+                }
+                break;
+            }
+            case R.id.stop_button: {
+                player.stop();
+                break;
+            }
+            case R.id.next_button:
+            case R.id.next_button_expand: {
+                player.next();
+                break;
+            }
+            case R.id.prev_button:
+            case R.id.prev_button_expand: {
+                player.prev();
                 break;
             }
         }

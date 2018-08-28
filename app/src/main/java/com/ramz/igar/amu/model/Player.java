@@ -6,8 +6,12 @@ import android.util.Log;
 import java.io.IOException;
 import java.util.List;
 
+import io.reactivex.subjects.BehaviorSubject;
+
 public class Player {
 
+    private BehaviorSubject<Boolean> isPlayingBehavior = BehaviorSubject.create();
+    private BehaviorSubject<Song> currentSongBehavior = BehaviorSubject.create();
     private boolean isPlaying = false;
     private Song currentSong = null;
     private MediaPlayer player = new MediaPlayer();
@@ -32,6 +36,8 @@ public class Player {
             player.prepare();
             player.start();
             isPlaying = true;
+            isPlayingBehavior.onNext(isPlaying);
+            currentSongBehavior.onNext(currentSong);
             Log.d("PLAYER", "START PLAYING: " + currentSong.getTitle());
         } catch (IOException e) {
             Log.e("ERROR", "ERROR ON START PLAY");
@@ -48,12 +54,15 @@ public class Player {
             e.printStackTrace();
         }
         isPlaying = true;
+        isPlayingBehavior.onNext(isPlaying);
+        currentSongBehavior.onNext(currentSong);
         Log.d("PLAYER", "PLAY");
     }
 
     public void pause() {
         player.pause();
         isPlaying = false;
+        isPlayingBehavior.onNext(isPlaying);
         Log.d("PLAYER", "PAUSE");
     }
 
@@ -63,6 +72,7 @@ public class Player {
             player.reset();
             currentSong = null;
             isPlaying = false;
+            isPlayingBehavior.onNext(isPlaying);
         }
     }
 
@@ -84,6 +94,14 @@ public class Player {
 
     public boolean isPlaying() {
         return isPlaying;
+    }
+
+    public BehaviorSubject<Boolean> getIsPlayingBehavior() {
+        return isPlayingBehavior;
+    }
+
+    public BehaviorSubject<Song> getCurrentSongBehavior() {
+        return currentSongBehavior;
     }
 
     public MediaPlayer getPlayer() {
