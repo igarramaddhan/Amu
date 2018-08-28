@@ -1,6 +1,8 @@
 package com.ramz.igar.amu.activity;
 
 import android.Manifest;
+import android.animation.AnimatorSet;
+import android.animation.ObjectAnimator;
 import android.content.ContentResolver;
 import android.content.Context;
 import android.content.pm.PackageManager;
@@ -8,12 +10,14 @@ import android.database.Cursor;
 import android.net.Uri;
 import android.provider.MediaStore;
 import android.support.annotation.NonNull;
+import android.support.design.widget.BottomSheetBehavior;
 import android.support.v4.app.ActivityCompat;
 import android.support.v4.content.ContextCompat;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.support.v7.widget.GridLayoutManager;
 import android.support.v7.widget.RecyclerView;
+import android.util.Log;
 import android.view.View;
 import android.widget.ImageButton;
 import android.widget.TextView;
@@ -23,6 +27,7 @@ import com.ramz.igar.amu.adapter.AlbumAdapter;
 import com.ramz.igar.amu.model.Album;
 import com.ramz.igar.amu.model.GlobalState;
 import com.ramz.igar.amu.model.ItemOffDecoration;
+import com.ramz.igar.amu.model.ItemSubscriber;
 import com.ramz.igar.amu.model.Player;
 import com.ramz.igar.amu.model.Song;
 
@@ -37,11 +42,12 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     private ArrayList<Song> playlist = GlobalState.getInstance().getPlaylist();
     private List<Album> albums = GlobalState.getInstance().getAlbums();
 
-    private TextView status, songTitle;
+    private TextView status, songTitle, songTitleExpand;
     private RecyclerView recyclerView;
     private Player player;
     private ImageButton playButton;
     private AlbumAdapter albumAdapter;
+    BottomSheetBehavior bottomSheetBehavior;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -62,6 +68,24 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         ItemOffDecoration itemDecoration = new ItemOffDecoration(2, getResources().getDimensionPixelSize(R.dimen.item_offset), true, 0);
         recyclerView.addItemDecoration(itemDecoration);
 
+        final View bottomSheet = findViewById(R.id.bottom_sheet);
+
+        songTitle = findViewById(R.id.song_title);
+        songTitleExpand = findViewById(R.id.song_title_expand);
+
+        playButton = findViewById(R.id.play_button);
+        playButton.setOnClickListener(this);
+        final ImageButton nextButton = findViewById(R.id.next_button);
+        nextButton.setOnClickListener(this);
+        final ImageButton prevButton = findViewById(R.id.prev_button);
+        prevButton.setOnClickListener(this);
+        final ImageButton playButtonEx = findViewById(R.id.play_button_expand);
+        playButtonEx.setOnClickListener(this);
+        final ImageButton nextButtonEx = findViewById(R.id.next_button_expand);
+        nextButtonEx.setOnClickListener(this);
+        final ImageButton prevButtonEx = findViewById(R.id.prev_button_expand);
+        prevButtonEx.setOnClickListener(this);
+
         if (ContextCompat.checkSelfPermission(getApplicationContext(), Manifest.permission.READ_EXTERNAL_STORAGE) != PackageManager.PERMISSION_GRANTED) {
             ActivityCompat.requestPermissions(this, new String[]{Manifest.permission.READ_EXTERNAL_STORAGE}, 1);
         } else {
@@ -71,6 +95,69 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
             status.setVisibility(View.GONE);
             recyclerView.setVisibility(View.VISIBLE);
         }
+
+        bottomSheetBehavior = BottomSheetBehavior.from(bottomSheet);
+        bottomSheetBehavior.setPeekHeight(bottomSheetBehavior.getPeekHeight());
+        bottomSheetBehavior.setHideable(true);
+        bottomSheetBehavior.setState(player.getPlayer().isPlaying() ? BottomSheetBehavior.STATE_COLLAPSED : BottomSheetBehavior.STATE_HIDDEN);
+
+        final View bottomView = findViewById(R.id.bottom_sheet_sec);
+        final View bottomViewChild = findViewById(R.id.bottom_sheet_sec_child);
+        bottomSheetBehavior.setBottomSheetCallback(new BottomSheetBehavior.BottomSheetCallback() {
+            @Override
+            public void onStateChanged(@NonNull View bottomSheet, int newState) {
+                float alpha = newState == BottomSheetBehavior.STATE_COLLAPSED ? 1f : 0f;
+                ObjectAnimator playAnimation = ObjectAnimator.ofFloat(playButton, "alpha", alpha);
+                ObjectAnimator nextAnimation = ObjectAnimator.ofFloat(nextButton, "alpha", alpha);
+                ObjectAnimator prevAnimation = ObjectAnimator.ofFloat(prevButton, "alpha", alpha);
+                ObjectAnimator bottomChild = ObjectAnimator.ofFloat(bottomViewChild, "alpha", newState == BottomSheetBehavior.STATE_EXPANDED ? 1f : 0f);
+                AnimatorSet anim = new AnimatorSet();
+                anim.playTogether(playAnimation, nextAnimation, prevAnimation, bottomChild);
+                anim.setDuration(500);
+                if (newState == BottomSheetBehavior.STATE_HIDDEN) {
+                    player.stop();
+                } else if (newState == BottomSheetBehavior.STATE_EXPANDED) {
+                    playButton.setVisibility(View.GONE);
+                    nextButton.setVisibility(View.GONE);
+                    prevButton.setVisibility(View.GONE);
+                } else {
+                    playButton.setVisibility(View.VISIBLE);
+                    nextButton.setVisibility(View.VISIBLE);
+                    prevButton.setVisibility(View.VISIBLE);
+                }
+                anim.start();
+            }
+
+            @Override
+            public void onSlide(@NonNull View bottomSheet, float slideOffset) {
+                int colorFrom = ContextCompat.getColor(getApplicationContext(), R.color.colorAccent);
+                int colorTo = ContextCompat.getColor(getApplicationContext(), R.color.colorBackgroundDark);
+                Log.d("Color", "" + colorTo);
+                bottomView.setBackgroundColor(interpolateColor(slideOffset, colorFrom, colorTo));
+            }
+        });
+
+        ItemSubscriber<Boolean> isPlayingSubscriber = new ItemSubscriber<>(isPlaying);
+
+        isPlayingSubscriber.subscibe(new ItemSubscriber.OnNext<Boolean>() {
+            @Override
+            public void onNextValue(Boolean value) {
+                playButton.setImageResource(value ? R.drawable.ic_pause : R.drawable.ic_play);
+                playButtonEx.setImageResource(value ? R.drawable.ic_pause_expand : R.drawable.ic_play_expand);
+                if (value && bottomSheetBehavior.getState() == BottomSheetBehavior.STATE_HIDDEN) bottomSheetBehavior.setState(BottomSheetBehavior.STATE_COLLAPSED);
+            }
+        });
+
+        ItemSubscriber<Song> songItemSubscriber = new ItemSubscriber<>(currentSong);
+
+        songItemSubscriber.subscibe(new ItemSubscriber.OnNext<Song>() {
+            @Override
+            public void onNextValue(Song value) {
+                songTitle.setText(value.getTitle());
+                songTitleExpand.setText(value.getTitle());
+            }
+        });
+
     }
 
     public void getSongList(Context context) {
@@ -175,5 +262,20 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                 break;
             }
         }
+    }
+
+    private int interpolateColor(float fraction, int startValue, int endValue) {
+        int startA = (startValue >> 24) & 0xff;
+        int startR = (startValue >> 16) & 0xff;
+        int startG = (startValue >> 8) & 0xff;
+        int startB = startValue & 0xff;
+        int endA = (endValue >> 24) & 0xff;
+        int endR = (endValue >> 16) & 0xff;
+        int endG = (endValue >> 8) & 0xff;
+        int endB = endValue & 0xff;
+        return ((startA + (int) (fraction * (endA - startA))) << 24) |
+                ((startR + (int) (fraction * (endR - startR))) << 16) |
+                ((startG + (int) (fraction * (endG - startG))) << 8) |
+                ((startB + (int) (fraction * (endB - startB))));
     }
 }

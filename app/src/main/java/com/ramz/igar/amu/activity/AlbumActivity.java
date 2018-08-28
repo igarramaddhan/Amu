@@ -10,6 +10,7 @@ import android.support.design.widget.CollapsingToolbarLayout;
 import android.support.v4.content.ContextCompat;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
+import android.support.v7.graphics.Palette;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.support.v7.widget.Toolbar;
@@ -27,8 +28,6 @@ import com.ramz.igar.amu.model.ItemSubscriber;
 import com.ramz.igar.amu.model.Player;
 import com.ramz.igar.amu.model.Song;
 
-import io.reactivex.Observer;
-import io.reactivex.disposables.Disposable;
 import io.reactivex.subjects.BehaviorSubject;
 
 public class AlbumActivity extends AppCompatActivity implements View.OnClickListener {
@@ -53,7 +52,7 @@ public class AlbumActivity extends AppCompatActivity implements View.OnClickList
         ImageView imageView = findViewById(R.id.expandedImage);
         CollapsingToolbarLayout collapsingToolbarLayout = findViewById(R.id.collapsing_toolbar);
         Toolbar toolbar = findViewById(R.id.toolbar);
-        View bottomSheet = findViewById(R.id.bottom_sheet);
+        final View bottomSheet = findViewById(R.id.bottom_sheet);
 
         songTitle = findViewById(R.id.song_title);
         songTitleExpand = findViewById(R.id.song_title_expand);
@@ -80,6 +79,11 @@ public class AlbumActivity extends AppCompatActivity implements View.OnClickList
 
         Bitmap coverBitmap = BitmapFactory.decodeFile(album.getAlbumCover());
         imageView.setImageBitmap(coverBitmap);
+        Palette palette = Palette.from(coverBitmap).generate();
+        int color1 = palette.getDarkVibrantColor(ContextCompat.getColor(getApplicationContext(), R.color.colorBackgroundDark));
+        int color2 = palette.getDarkMutedColor(ContextCompat.getColor(getApplicationContext(), R.color.colorPrimary));
+        collapsingToolbarLayout.setStatusBarScrimColor(color2);
+        collapsingToolbarLayout.setContentScrimColor(color1);
 
         setSupportActionBar(toolbar);
         if (getSupportActionBar() != null) {
@@ -137,7 +141,9 @@ public class AlbumActivity extends AppCompatActivity implements View.OnClickList
             @Override
             public void onNextValue(Boolean value) {
                 playButton.setImageResource(value ? R.drawable.ic_pause : R.drawable.ic_play);
-                if (value) bottomSheetBehavior.setState(BottomSheetBehavior.STATE_COLLAPSED);
+                playButtonEx.setImageResource(value ? R.drawable.ic_pause_expand : R.drawable.ic_play_expand);
+                if (value && bottomSheetBehavior.getState() == BottomSheetBehavior.STATE_HIDDEN)
+                    bottomSheetBehavior.setState(BottomSheetBehavior.STATE_COLLAPSED);
             }
         });
 
