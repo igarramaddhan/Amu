@@ -104,7 +104,7 @@ public class AlbumActivity extends AppCompatActivity implements View.OnClickList
         bottomSheetBehavior.setState(player.getPlayer().isPlaying() ? BottomSheetBehavior.STATE_COLLAPSED : BottomSheetBehavior.STATE_HIDDEN);
 
 //        final View bottomView = findViewById(R.id.bottom_sheet_sec);
-        final View bottomViewChild = findViewById(R.id.bottom_sheet_sec_child);
+        final View bottomViewChild = findViewById(R.id.bottom_sheet_sec);
 
         final View playerView = findViewById(R.id.player_view);
         bottomSheetBehavior.setBottomSheetCallback(new BottomSheetBehavior.BottomSheetCallback() {
@@ -178,6 +178,11 @@ public class AlbumActivity extends AppCompatActivity implements View.OnClickList
                 songTitleExpand.setText(value.getTitle());
                 if (value != null && player.getPlayerBackground(getApplicationContext()) != null)
                     bottomSheet.setBackground(player.getPlayerBackground(getApplicationContext()));
+
+                Bitmap coverBitmap = BitmapFactory.decodeFile(value.getAlbumArt());
+                ImageView cover_expand = findViewById(R.id.image_view_expanded);
+                cover_expand.setImageBitmap(coverBitmap);
+
             }
         });
 
@@ -199,10 +204,6 @@ public class AlbumActivity extends AppCompatActivity implements View.OnClickList
                 } else if (!player.isPlaying()) {
                     player.play();
                 }
-                break;
-            }
-            case R.id.stop_button: {
-                player.stop();
                 break;
             }
             case R.id.next_button:

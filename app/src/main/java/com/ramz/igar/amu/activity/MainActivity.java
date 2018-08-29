@@ -270,10 +270,6 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                 }
                 break;
             }
-            case R.id.stop_button: {
-                player.stop();
-                break;
-            }
             case R.id.next_button:
             case R.id.next_button_expand: {
                 player.next();
