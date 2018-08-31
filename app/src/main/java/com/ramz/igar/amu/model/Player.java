@@ -1,8 +1,6 @@
 package com.ramz.igar.amu.model;
 
 import android.content.Context;
-import android.graphics.Bitmap;
-import android.graphics.BitmapFactory;
 import android.graphics.drawable.GradientDrawable;
 import android.media.MediaPlayer;
 import android.support.v4.content.ContextCompat;
@@ -136,8 +134,7 @@ public class Player {
         int accent = ContextCompat.getColor(context, R.color.colorAccent);
         GradientDrawable gd = null;
         if(currentSong!=null){
-            Bitmap coverBitmap = BitmapFactory.decodeFile(currentSong.getAlbumArt());
-            Palette palette = Palette.from(coverBitmap).generate();
+            Palette palette = Palette.from(currentSong.getCoverBitmap(context)).generate();
             int backgroundColor = palette.getMutedColor(accent);
             int backgroundColor2 = palette.getDarkMutedColor(accent);
             gd = new GradientDrawable(GradientDrawable.Orientation.BOTTOM_TOP, new int[]{backgroundColor2, backgroundColor});

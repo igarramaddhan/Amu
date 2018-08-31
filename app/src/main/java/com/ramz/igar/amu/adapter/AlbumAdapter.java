@@ -3,8 +3,6 @@ package com.ramz.igar.amu.adapter;
 import android.app.Activity;
 import android.content.Context;
 import android.content.Intent;
-import android.graphics.Bitmap;
-import android.graphics.BitmapFactory;
 import android.support.annotation.NonNull;
 import android.support.v4.app.ActivityOptionsCompat;
 import android.support.v7.widget.CardView;
@@ -52,8 +50,7 @@ public class AlbumAdapter extends RecyclerView.Adapter<AlbumAdapter.AlbumViewHol
         });
 
         Album album = albums.get(position);
-        Bitmap coverBitmap = BitmapFactory.decodeFile(album.getAlbumCover());
-        holder.imageView.setImageBitmap(coverBitmap);
+        holder.imageView.setImageBitmap(album.getCoverBitmap(context));
         holder.titleTextView.setText(album.getAlbumTitle());
         holder.artistTextView.setText(album.getAlbumTitle());
     }

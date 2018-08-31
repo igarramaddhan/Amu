@@ -3,25 +3,17 @@ package com.ramz.igar.amu.activity;
 import android.animation.AnimatorSet;
 import android.animation.ObjectAnimator;
 import android.animation.ValueAnimator;
-import android.graphics.Bitmap;
-import android.graphics.BitmapFactory;
-import android.graphics.drawable.GradientDrawable;
-import android.graphics.drawable.Icon;
 import android.support.annotation.NonNull;
 import android.support.design.widget.BottomSheetBehavior;
 import android.support.design.widget.CollapsingToolbarLayout;
 import android.support.design.widget.CoordinatorLayout;
 import android.support.v4.content.ContextCompat;
-import android.support.v4.widget.NestedScrollView;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
-import android.support.v7.graphics.Palette;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.support.v7.widget.Toolbar;
-import android.util.Log;
 import android.view.View;
-import android.widget.ImageButton;
 import android.widget.ImageView;
 import android.widget.TextView;
 
@@ -83,13 +75,9 @@ public class AlbumActivity extends AppCompatActivity implements View.OnClickList
         SongAdapter songAdapter = new SongAdapter(album.getSongs());
         recyclerView.setAdapter(songAdapter);
 
-        Bitmap coverBitmap = BitmapFactory.decodeFile(album.getAlbumCover());
-        imageView.setImageBitmap(coverBitmap);
-        final Palette palette = Palette.from(coverBitmap).generate();
-        int color1 = palette.getDarkVibrantColor(ContextCompat.getColor(getApplicationContext(), R.color.colorBackgroundDark));
-        int color2 = palette.getDarkMutedColor(ContextCompat.getColor(getApplicationContext(), R.color.colorPrimary));
-        collapsingToolbarLayout.setStatusBarScrimColor(color2);
-        collapsingToolbarLayout.setContentScrimColor(color1);
+        collapsingToolbarLayout.setStatusBarScrimColor(album.getToolbarColor(getApplicationContext()).get("statusBarColor"));
+        collapsingToolbarLayout.setContentScrimColor(album.getToolbarColor(getApplicationContext()).get("navigationBarColor"));
+        imageView.setImageBitmap(album.getCoverBitmap(getApplicationContext()));
 
         setSupportActionBar(toolbar);
         if (getSupportActionBar() != null) {
@@ -149,7 +137,8 @@ public class AlbumActivity extends AppCompatActivity implements View.OnClickList
                 playButtonEx.setText(value ? R.string.icon_pause : R.string.icon_play);
                 if (value && bottomSheetBehavior.getState() == BottomSheetBehavior.STATE_HIDDEN)
                     bottomSheetBehavior.setState(BottomSheetBehavior.STATE_COLLAPSED);
-                if(!value && player.getCurrentSong() == null) bottomSheetBehavior.setState(BottomSheetBehavior.STATE_HIDDEN);
+                if (!value && player.getCurrentSong() == null)
+                    bottomSheetBehavior.setState(BottomSheetBehavior.STATE_HIDDEN);
 
                 final CoordinatorLayout coordinatorLayout = findViewById(R.id.scroll_view);
                 ValueAnimator animation;
@@ -181,9 +170,8 @@ public class AlbumActivity extends AppCompatActivity implements View.OnClickList
                 if (value != null && player.getPlayerBackground(getApplicationContext()) != null)
                     bottomSheet.setBackground(player.getPlayerBackground(getApplicationContext()));
 
-                Bitmap coverBitmap = BitmapFactory.decodeFile(value.getAlbumArt());
                 ImageView cover_expand = findViewById(R.id.image_view_expanded);
-                cover_expand.setImageBitmap(coverBitmap);
+                cover_expand.setImageBitmap(value.getCoverBitmap(getApplicationContext()));
 
             }
         });

@@ -1,5 +1,11 @@
 package com.ramz.igar.amu.model;
 
+import android.content.Context;
+import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
+
+import com.ramz.igar.amu.R;
+
 public class Song{
 
     private long id;
@@ -74,5 +80,14 @@ public class Song{
         return finalTimerString;
     }
 
+    public Bitmap getCoverBitmap(Context context){
+        Bitmap coverBitmap;
+        if(albumArt==null){
+            coverBitmap = BitmapFactory.decodeResource(context.getResources(), R.drawable.empty);
+        }else{
+            coverBitmap = BitmapFactory.decodeFile(albumArt);
+        }
+        return coverBitmap;
+    }
 
 }
