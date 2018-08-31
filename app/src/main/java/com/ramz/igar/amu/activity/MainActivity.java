@@ -8,6 +8,8 @@ import android.content.ContentResolver;
 import android.content.Context;
 import android.content.pm.PackageManager;
 import android.database.Cursor;
+import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
 import android.net.Uri;
 import android.provider.MediaStore;
 import android.support.annotation.NonNull;
@@ -20,6 +22,7 @@ import android.support.v7.widget.GridLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.view.View;
 import android.widget.ImageButton;
+import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.TextView;
 
@@ -27,6 +30,7 @@ import com.ramz.igar.amu.R;
 import com.ramz.igar.amu.adapter.AlbumAdapter;
 import com.ramz.igar.amu.model.Album;
 import com.ramz.igar.amu.model.GlobalState;
+import com.ramz.igar.amu.model.IconTextView;
 import com.ramz.igar.amu.model.ItemOffDecoration;
 import com.ramz.igar.amu.model.ItemSubscriber;
 import com.ramz.igar.amu.model.Player;
@@ -46,7 +50,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     private TextView status, songTitle, songTitleExpand;
     private RecyclerView recyclerView;
     private Player player;
-    private ImageButton playButton;
+    private IconTextView playButton;
     private AlbumAdapter albumAdapter;
 
     @Override
@@ -73,17 +77,17 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         songTitle = findViewById(R.id.song_title);
         songTitleExpand = findViewById(R.id.song_title_expand);
 
-        playButton = findViewById(R.id.play_button);
+        playButton = findViewById(R.id.play_icon);
         playButton.setOnClickListener(this);
-        final ImageButton nextButton = findViewById(R.id.next_button);
+        final IconTextView nextButton = findViewById(R.id.next_icon);
         nextButton.setOnClickListener(this);
-        final ImageButton prevButton = findViewById(R.id.prev_button);
+        final IconTextView prevButton = findViewById(R.id.prev_icon);
         prevButton.setOnClickListener(this);
-        final ImageButton playButtonEx = findViewById(R.id.play_button_expand);
+        final IconTextView playButtonEx = findViewById(R.id.play_icon_expand);
         playButtonEx.setOnClickListener(this);
-        final ImageButton nextButtonEx = findViewById(R.id.next_button_expand);
+        final IconTextView nextButtonEx = findViewById(R.id.next_icon_expand);
         nextButtonEx.setOnClickListener(this);
-        final ImageButton prevButtonEx = findViewById(R.id.prev_button_expand);
+        final IconTextView prevButtonEx = findViewById(R.id.prev_icon_expand);
         prevButtonEx.setOnClickListener(this);
 
         if (ContextCompat.checkSelfPermission(getApplicationContext(), Manifest.permission.READ_EXTERNAL_STORAGE) != PackageManager.PERMISSION_GRANTED) {
@@ -102,7 +106,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         bottomSheetBehavior.setState(player.getPlayer().isPlaying() ? BottomSheetBehavior.STATE_COLLAPSED : BottomSheetBehavior.STATE_HIDDEN);
 
 //        final View bottomView = findViewById(R.id.bottom_sheet_sec);
-        final View bottomViewChild = findViewById(R.id.bottom_sheet_sec_child);
+        final View bottomViewChild = findViewById(R.id.bottom_sheet_sec);
         final View playerView = findViewById(R.id.player_view);
         bottomSheetBehavior.setBottomSheetCallback(new BottomSheetBehavior.BottomSheetCallback() {
             @Override
@@ -140,11 +144,12 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         isPlayingSubscriber.subscibe(new ItemSubscriber.OnNext<Boolean>() {
             @Override
             public void onNextValue(Boolean value) {
-                playButton.setImageResource(value ? R.drawable.ic_pause : R.drawable.ic_play);
-                playButtonEx.setImageResource(value ? R.drawable.ic_pause_expand : R.drawable.ic_play_expand);
+                playButton.setText(value ? R.string.icon_pause : R.string.icon_play);
+                playButtonEx.setText(value ? R.string.icon_pause : R.string.icon_play);
                 if (value && bottomSheetBehavior.getState() == BottomSheetBehavior.STATE_HIDDEN)
                     bottomSheetBehavior.setState(BottomSheetBehavior.STATE_COLLAPSED);
-                if(!value && player.getCurrentSong() == null) bottomSheetBehavior.setState(BottomSheetBehavior.STATE_HIDDEN);
+                if (!value && player.getCurrentSong() == null)
+                    bottomSheetBehavior.setState(BottomSheetBehavior.STATE_HIDDEN);
 
                 final LinearLayout linearLayout = findViewById(R.id.main_activity_root);
                 ValueAnimator animation;
@@ -175,6 +180,10 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                 songTitle.setText(value.getTitle());
                 songTitleExpand.setText(value.getTitle());
                 bottomSheet.setBackground(player.getPlayerBackground(getApplicationContext()));
+
+                Bitmap coverBitmap = BitmapFactory.decodeFile(value.getAlbumArt());
+                ImageView cover_expand = findViewById(R.id.image_view_expanded);
+                cover_expand.setImageBitmap(coverBitmap);
 
             }
         });
@@ -261,8 +270,8 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     @Override
     public void onClick(View v) {
         switch (v.getId()) {
-            case R.id.play_button:
-            case R.id.play_button_expand: {
+            case R.id.play_icon:
+            case R.id.play_icon_expand: {
                 if (player.isPlaying()) {
                     player.pause();
                 } else if (!player.isPlaying()) {
@@ -270,13 +279,13 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                 }
                 break;
             }
-            case R.id.next_button:
-            case R.id.next_button_expand: {
+            case R.id.next_icon:
+            case R.id.next_icon_expand: {
                 player.next();
                 break;
             }
-            case R.id.prev_button:
-            case R.id.prev_button_expand: {
+            case R.id.prev_icon:
+            case R.id.prev_icon_expand: {
                 player.prev();
                 break;
             }

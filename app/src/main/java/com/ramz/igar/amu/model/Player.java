@@ -138,8 +138,9 @@ public class Player {
         if(currentSong!=null){
             Bitmap coverBitmap = BitmapFactory.decodeFile(currentSong.getAlbumArt());
             Palette palette = Palette.from(coverBitmap).generate();
-            int backgroundColor = palette.getVibrantColor(accent);
-            gd = new GradientDrawable(GradientDrawable.Orientation.BOTTOM_TOP, new int[]{accent, backgroundColor});
+            int backgroundColor = palette.getMutedColor(accent);
+            int backgroundColor2 = palette.getDarkMutedColor(accent);
+            gd = new GradientDrawable(GradientDrawable.Orientation.BOTTOM_TOP, new int[]{backgroundColor2, backgroundColor});
             gd.setCornerRadius(0f);
         }
         return gd;

@@ -6,6 +6,7 @@ import android.animation.ValueAnimator;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.graphics.drawable.GradientDrawable;
+import android.graphics.drawable.Icon;
 import android.support.annotation.NonNull;
 import android.support.design.widget.BottomSheetBehavior;
 import android.support.design.widget.CollapsingToolbarLayout;
@@ -28,6 +29,7 @@ import com.ramz.igar.amu.R;
 import com.ramz.igar.amu.adapter.SongAdapter;
 import com.ramz.igar.amu.model.Album;
 import com.ramz.igar.amu.model.GlobalState;
+import com.ramz.igar.amu.model.IconTextView;
 import com.ramz.igar.amu.model.ItemSubscriber;
 import com.ramz.igar.amu.model.Player;
 import com.ramz.igar.amu.model.Song;
@@ -38,7 +40,7 @@ public class AlbumActivity extends AppCompatActivity implements View.OnClickList
 
     BottomSheetBehavior bottomSheetBehavior;
     private TextView songTitle, songTitleExpand;
-    private ImageButton playButton;
+    private IconTextView playButton;
     private Player player;
 
     @Override
@@ -61,17 +63,17 @@ public class AlbumActivity extends AppCompatActivity implements View.OnClickList
         songTitle = findViewById(R.id.song_title);
         songTitleExpand = findViewById(R.id.song_title_expand);
 
-        playButton = findViewById(R.id.play_button);
+        playButton = findViewById(R.id.play_icon);
         playButton.setOnClickListener(this);
-        final ImageButton nextButton = findViewById(R.id.next_button);
+        final IconTextView nextButton = findViewById(R.id.next_icon);
         nextButton.setOnClickListener(this);
-        final ImageButton prevButton = findViewById(R.id.prev_button);
+        final IconTextView prevButton = findViewById(R.id.prev_icon);
         prevButton.setOnClickListener(this);
-        final ImageButton playButtonEx = findViewById(R.id.play_button_expand);
+        final IconTextView playButtonEx = findViewById(R.id.play_icon_expand);
         playButtonEx.setOnClickListener(this);
-        final ImageButton nextButtonEx = findViewById(R.id.next_button_expand);
+        final IconTextView nextButtonEx = findViewById(R.id.next_icon_expand);
         nextButtonEx.setOnClickListener(this);
-        final ImageButton prevButtonEx = findViewById(R.id.prev_button_expand);
+        final IconTextView prevButtonEx = findViewById(R.id.prev_icon_expand);
         prevButtonEx.setOnClickListener(this);
 
         recyclerView.setHasFixedSize(true);
@@ -143,8 +145,8 @@ public class AlbumActivity extends AppCompatActivity implements View.OnClickList
         isPlayingSubscriber.subscibe(new ItemSubscriber.OnNext<Boolean>() {
             @Override
             public void onNextValue(Boolean value) {
-                playButton.setImageResource(value ? R.drawable.ic_pause : R.drawable.ic_play);
-                playButtonEx.setImageResource(value ? R.drawable.ic_pause_expand : R.drawable.ic_play_expand);
+                playButton.setText(value ? R.string.icon_pause : R.string.icon_play);
+                playButtonEx.setText(value ? R.string.icon_pause : R.string.icon_play);
                 if (value && bottomSheetBehavior.getState() == BottomSheetBehavior.STATE_HIDDEN)
                     bottomSheetBehavior.setState(BottomSheetBehavior.STATE_COLLAPSED);
                 if(!value && player.getCurrentSong() == null) bottomSheetBehavior.setState(BottomSheetBehavior.STATE_HIDDEN);
@@ -197,8 +199,8 @@ public class AlbumActivity extends AppCompatActivity implements View.OnClickList
     @Override
     public void onClick(View v) {
         switch (v.getId()) {
-            case R.id.play_button:
-            case R.id.play_button_expand: {
+            case R.id.play_icon:
+            case R.id.play_icon_expand: {
                 if (player.isPlaying()) {
                     player.pause();
                 } else if (!player.isPlaying()) {
@@ -206,13 +208,13 @@ public class AlbumActivity extends AppCompatActivity implements View.OnClickList
                 }
                 break;
             }
-            case R.id.next_button:
-            case R.id.next_button_expand: {
+            case R.id.next_icon:
+            case R.id.next_icon_expand: {
                 player.next();
                 break;
             }
-            case R.id.prev_button:
-            case R.id.prev_button_expand: {
+            case R.id.prev_icon:
+            case R.id.prev_icon_expand: {
                 player.prev();
                 break;
             }

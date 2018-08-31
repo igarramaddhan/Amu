@@ -9,4 +9,9 @@
     <string name="play_button">Play Button</string>
     <string name="stop_button">Stop Button</string>
     <string name="cover">Cover</string>
+
+    <string name="icon_play">&#xf04b;</string>
+    <string name="icon_forward">&#xf04e;</string>
+    <string name="icon_backward">&#xf04a;</string>
+    <string name="icon_pause">&#xf04c;</string>
 </resources>
