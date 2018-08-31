@@ -20,6 +20,7 @@ import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.support.v7.widget.GridLayoutManager;
 import android.support.v7.widget.RecyclerView;
+import android.util.Log;
 import android.view.View;
 import android.widget.ImageButton;
 import android.widget.ImageView;
@@ -224,8 +225,10 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                     if (cursor.moveToFirst()) {
                         albumArt = cursor.getString(cursor.getColumnIndex(MediaStore.Audio.Albums.ALBUM_ART));
                     }
+                    if(albumArt==null) albumArt = "";
 
                     songs.add(new Song(thisId, thisTitle, thisArtist, thisAlbum, thisDuration, thisPath, albumArt));
+                    Log.d("Song Album", albumArt);
                     cursor.close();
                 }
             } while (musicCursor.moveToNext());

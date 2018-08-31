@@ -34,6 +34,8 @@ import com.ramz.igar.amu.model.ItemSubscriber;
 import com.ramz.igar.amu.model.Player;
 import com.ramz.igar.amu.model.Song;
 
+import java.util.ArrayList;
+
 import io.reactivex.subjects.BehaviorSubject;
 
 public class AlbumActivity extends AppCompatActivity implements View.OnClickListener {
@@ -84,13 +86,16 @@ public class AlbumActivity extends AppCompatActivity implements View.OnClickList
         recyclerView.setAdapter(songAdapter);
 
         Bitmap coverBitmap = BitmapFactory.decodeFile(album.getAlbumCover());
-        imageView.setImageBitmap(coverBitmap);
-        final Palette palette = Palette.from(coverBitmap).generate();
-        int color1 = palette.getDarkVibrantColor(ContextCompat.getColor(getApplicationContext(), R.color.colorBackgroundDark));
-        int color2 = palette.getDarkMutedColor(ContextCompat.getColor(getApplicationContext(), R.color.colorPrimary));
-        collapsingToolbarLayout.setStatusBarScrimColor(color2);
-        collapsingToolbarLayout.setContentScrimColor(color1);
 
+        if(coverBitmap!=null) {
+            imageView.setImageBitmap(coverBitmap);
+            Palette palette = Palette.from(coverBitmap).generate();
+
+            int color1 = palette.getDarkVibrantColor(ContextCompat.getColor(getApplicationContext(), R.color.colorBackgroundDark));
+            int color2 = palette.getDarkMutedColor(ContextCompat.getColor(getApplicationContext(), R.color.colorPrimary));
+            collapsingToolbarLayout.setStatusBarScrimColor(color2);
+            collapsingToolbarLayout.setContentScrimColor(color1);
+        }
         setSupportActionBar(toolbar);
         if (getSupportActionBar() != null) {
             getSupportActionBar().setDisplayHomeAsUpEnabled(true);
