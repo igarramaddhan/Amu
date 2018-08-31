@@ -56,8 +56,10 @@ public class Player {
             player.start();
             isPlaying = true;
             newValue();
+
             currentSongBehavior.onNext(currentSong);
             Log.d("PLAYER", "START PLAYING: " + currentSong.getTitle());
+
         } catch (IOException e) {
             Log.e("ERROR", "ERROR ON START PLAY");
             e.printStackTrace();
@@ -136,10 +138,17 @@ public class Player {
         int accent = ContextCompat.getColor(context, R.color.colorAccent);
         GradientDrawable gd = null;
         if(currentSong!=null){
+            int backgroundColor2;
+            int backgroundColor = backgroundColor2 = accent;
+
+
             Bitmap coverBitmap = BitmapFactory.decodeFile(currentSong.getAlbumArt());
-            Palette palette = Palette.from(coverBitmap).generate();
-            int backgroundColor = palette.getMutedColor(accent);
-            int backgroundColor2 = palette.getDarkMutedColor(accent);
+            if (coverBitmap != null) {
+                Palette palette = Palette.from(coverBitmap).generate();
+                backgroundColor = palette.getMutedColor(accent);
+                backgroundColor2 = palette.getDarkMutedColor(accent);
+            }
+
             gd = new GradientDrawable(GradientDrawable.Orientation.BOTTOM_TOP, new int[]{backgroundColor2, backgroundColor});
             gd.setCornerRadius(0f);
         }
